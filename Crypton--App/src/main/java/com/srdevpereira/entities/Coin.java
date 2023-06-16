@@ -1,31 +1,32 @@
 package com.srdevpereira.entities;
 
+import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 
+@Entity
+@Table(name = "coin")
 public class Coin {
-    private int id;
+    @jakarta.persistence.Id
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "ID")
+    private Long id;
+    @Column(name = "NAME")
     private String name;
+    @Column(name = "PRICE")
     private BigDecimal price;
+    @Column(name = "QUANTITY")
     private BigDecimal quantity;
+    @Column(name = "DATETIME")
     private Timestamp dateTime;
 
+
     public Coin(){}
-    public Coin(int id, String name, BigDecimal price, BigDecimal quantity, Timestamp dateTime) {
-        this.id = id;
-        this.name = name;
-        this.price = price;
-        this.quantity = quantity;
-        this.dateTime = dateTime;
-    }
 
 
-    public int getId() {
-        return id;
-    }
-    public void setId(int id) {
-        this.id = id;
-    }
     public String getName() {
         return name;
     }
@@ -49,5 +50,11 @@ public class Coin {
     }
     public void setDateTime(Timestamp dateTime) {
         this.dateTime = dateTime;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public Long getId() {
+        return id;
     }
 }

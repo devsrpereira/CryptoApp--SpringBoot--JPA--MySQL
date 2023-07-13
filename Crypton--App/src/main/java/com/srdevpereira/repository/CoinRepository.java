@@ -2,6 +2,9 @@ package com.srdevpereira.repository;
 
 import com.srdevpereira.DTO.CoinTrasationDTO;
 import com.srdevpereira.entities.Coin;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.transaction.Transactional;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -13,50 +16,28 @@ import java.util.List;
 @Repository
 public class CoinRepository {
 
-    private static String INSERT = "insert into coin (name, price, quantity, datetime) values (?, ?, ?, ?)";
-    private static String SELECT_ALL = "select name, sum(quantity) as quantity from coin group by name";
-    private static String SELECT_BY_NAME = "select * from coin where name = ?";
-    private static String DELETE = "delete from coin where id = ?";
-    private static String UPDATE = "update coin set name = ?, price = ?, quantity = ? where id = ?";
-
-    private final JdbcTemplate jdbcTemplate;
+    private EntityManager entityManager;
 
     public CoinRepository(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+        this.entityManager = entityManager;
     }
 
+    @Transactional
     public Coin insert (Coin coin){
-        Object[] attr = new Object[]{
-                coin.getName(),
-                coin.getPrice(),
-                coin.getQuantity(),
-                coin.getDateTime()
-        };
-        jdbcTemplate.update(INSERT, attr);
+        entityManager.persist(coin);
         return coin;
     }
 
+    @Transactional
     public Coin update(Coin coin){
-        Object[] attr = new Object[]{
-                coin.getName(),
-                coin.getPrice(),
-                coin.getQuantity(),
-                coin.getId()
-        };
-        jdbcTemplate.update(UPDATE, attr);
+        entityManager.merge(coin);
         return coin;
     }
 
     public List<CoinTrasationDTO> getAll(){
-        return jdbcTemplate.query(SELECT_ALL, new RowMapper<CoinTrasationDTO>() {
-            @Override
-            public CoinTrasationDTO mapRow(ResultSet rs, int rowNum) throws SQLException {
-                CoinTrasationDTO coinTrasationDTO = new CoinTrasationDTO();
-                coinTrasationDTO.setName(rs.getString("name"));
-                coinTrasationDTO.setQuantity(rs.getBigDecimal("quantity"));
-                return coinTrasationDTO;
-            }
-        });
+        String jpql = "select new com.srdevpereira.DTO.CoinTrasationDTO(c.name, sum(c.quantity)) from Coin c group by c.name";
+        TypedQuery<CoinTrasationDTO> query = entityManager.createQuery(jpql, CoinTrasationDTO.class);
+        return query.getResultList();
     }
 
     public List<Coin> getByName(String name){

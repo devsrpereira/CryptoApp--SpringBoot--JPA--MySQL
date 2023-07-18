@@ -5,6 +5,7 @@ import com.srdevpereira.entities.Coin;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
@@ -16,11 +17,8 @@ import java.util.List;
 @Repository
 public class CoinRepository {
 
+    @Autowired
     private EntityManager entityManager;
-
-    public CoinRepository(JdbcTemplate jdbcTemplate) {
-        this.entityManager = entityManager;
-    }
 
     @Transactional
     public Coin insert (Coin coin){
@@ -39,26 +37,16 @@ public class CoinRepository {
         TypedQuery<CoinTrasationDTO> query = entityManager.createQuery(jpql, CoinTrasationDTO.class);
         return query.getResultList();
     }
-
     public List<Coin> getByName(String name){
-        Object[] attr = new Object[]{name};
-        return jdbcTemplate.query(SELECT_BY_NAME, new RowMapper<Coin>() {
-            @Override
-            public Coin mapRow(ResultSet rs, int rowNum) throws SQLException {
-                Coin coin = new Coin();
-                coin.setId(rs.getInt("id"));
-                coin.setName(rs.getString("name"));
-                coin.setPrice(rs.getBigDecimal("price"));
-                coin.setQuantity(rs.getBigDecimal("quantity"));
-                coin.setDateTime(rs.getTimestamp("datetime"));
-
-                return coin;
-            }
-        }, attr);
+        String jqpl = "select c from Coin c where c.name like :name";
+        TypedQuery<Coin> query = entityManager.createQuery(jqpl, Coin.class);
+        query.setParameter("name", "%"+name+"%"); //facilita a busca pois localiza qualquer parte do texto como "NAME"
+        return query.getResultList();
     }
 
+/*
     public int remove(int id){
         return jdbcTemplate.update(DELETE, id);
     }
-
+*/
 }
